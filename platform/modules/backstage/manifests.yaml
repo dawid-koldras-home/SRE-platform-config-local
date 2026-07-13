@@ -1,4 +1,14 @@
 ---
+# Source: backstage/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: backstage-read-only
+  namespace: backstage
+  labels:
+    app.kubernetes.io/component: backstage
+automountServiceAccountToken: true
+---
 # Source: backstage/templates/app-config-configmap.yaml
 apiVersion: v1
 kind: ConfigMap
@@ -15,6 +25,14 @@ data:
             path: /
       packages: all
       title: SRE Platform Developer Portal
+    argocd:
+      appLocatorMethods:
+      - instances:
+        - name: local
+          url: http://localhost:8080
+        type: config
+      fullDeploymentHistory: false
+      refreshInterval: 10000
     auth:
       environment: development
       providers:
@@ -68,6 +86,25 @@ data:
         - Template
         - User
         - Group
+    kubernetes:
+      clusterLocatorMethods:
+      - clusters:
+        - authProvider: serviceAccount
+          name: local
+          skipMetricsLookup: true
+          skipTLSVerify: false
+          url: https://kubernetes.default.svc
+        type: config
+      customResources:
+      - apiVersion: v1alpha1
+        group: argoproj.io
+        plural: applications
+      frontend:
+        podDelete:
+          enabled: false
+      objectTypes: []
+      serviceLocatorMethod:
+        type: multiTenant
     mcpActions:
       description: Local developer portal for the SRE Platform
       name: SRE Platform Backstage
@@ -116,6 +153,10 @@ data:
     metadata:
       name: sre-platform-control-plane
       description: Local SRE Platform control-plane services
+      annotations:
+        argocd/app-selector: app.kubernetes.io/part-of=sre-platform
+        backstage.io/kubernetes-label-selector: app.kubernetes.io/part-of=sre-platform
+        backstage.io/kubernetes-namespace: argocd
       tags:
         - sre
         - gitops
@@ -127,6 +168,37 @@ data:
 kind: ConfigMap
 metadata:
   name: backstage-local-catalog
+---
+# Source: backstage/templates/extra-list.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: backstage-argocd-read-only
+  namespace: argocd
+rules:
+- apiGroups:
+  - argoproj.io
+  resources:
+  - applications
+  verbs:
+  - get
+  - list
+  - watch
+---
+# Source: backstage/templates/extra-list.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: backstage-argocd-read-only
+  namespace: argocd
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: backstage-argocd-read-only
+subjects:
+- kind: ServiceAccount
+  name: backstage-read-only
+  namespace: backstage
 ---
 # Source: backstage/templates/service.yaml
 apiVersion: v1
@@ -184,9 +256,9 @@ spec:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/component: backstage
       annotations:
-        checksum/app-config: f0c356a1d735b230f5e049bd578ae09bd65186161d8bc9b0a4ef7a6721bd136c
+        checksum/app-config: 91faedfc940fcedfcf22f8f173c0ad5aefe064782bfdf4078a9802aff72fa159
     spec:
-      serviceAccountName: default
+      serviceAccountName: backstage-read-only
       volumes:
         - configMap:
             name: backstage-local-catalog
@@ -197,8 +269,8 @@ spec:
       
       containers:
         - name: backstage-backend
-          image: ghcr.io/backstage/backstage:1.52.1
-          imagePullPolicy: ""
+          image: localhost:5001/sre-platform/backstage:1.52.0-argocd.1
+          imagePullPolicy: "IfNotPresent"
           command:
             - node
             - packages/backend
