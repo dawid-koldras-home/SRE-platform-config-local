@@ -30,7 +30,6 @@ spec:
       - PruneLast=true
     retry:
       limit: 3
-      refresh: true
       backoff:
         duration: 5s
         factor: 2
