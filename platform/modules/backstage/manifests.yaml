@@ -20,6 +20,10 @@ data:
       providers:
         guest:
           dangerouslyAllowOutsideDevelopment: true
+          ownershipEntityRefs:
+          - user:default/guest
+          - group:default/platform-team
+          userEntityRef: user:default/guest
     backend:
       actions:
         pluginSources:
@@ -180,7 +184,7 @@ spec:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/component: backstage
       annotations:
-        checksum/app-config: 1600d0dd0ff3238e6391d3880115ffe1bb7e203730064f93cd16dbe107aec3d2
+        checksum/app-config: f0c356a1d735b230f5e049bd578ae09bd65186161d8bc9b0a4ef7a6721bd136c
     spec:
       serviceAccountName: default
       volumes:
