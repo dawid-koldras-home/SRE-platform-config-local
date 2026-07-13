@@ -53273,7 +53273,7 @@ spec:
           serviceAccountName: kyverno-cleanup-jobs
           containers:
           - name: cleanup
-            image: "registry.k8s.io/kubectl:v1.30.0"
+            image: "docker.io/alpine/k8s:1.30.0@sha256:bd01dae02676ce4cab62fc744e43443eee5bf660054e94d3496d23bfc35d384e"
             imagePullPolicy: 
             command:
             - /bin/bash
@@ -53327,7 +53327,7 @@ spec:
           serviceAccountName: kyverno-cleanup-jobs
           containers:
           - name: cleanup
-            image: "registry.k8s.io/kubectl:v1.30.0"
+            image: "docker.io/alpine/k8s:1.30.0@sha256:bd01dae02676ce4cab62fc744e43443eee5bf660054e94d3496d23bfc35d384e"
             imagePullPolicy: 
             command:
             - /bin/bash
@@ -53775,7 +53775,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: kubectl
-          image: "registry.k8s.io/kubectl:v1.30.0"
+          image: "docker.io/alpine/k8s:1.30.0@sha256:bd01dae02676ce4cab62fc744e43443eee5bf660054e94d3496d23bfc35d384e"
           imagePullPolicy: 
           command:
             - /bin/bash
@@ -53907,7 +53907,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: kubectl
-          image: "registry.k8s.io/kubectl:v1.30.0"
+          image: "docker.io/alpine/k8s:1.30.0@sha256:bd01dae02676ce4cab62fc744e43443eee5bf660054e94d3496d23bfc35d384e"
           imagePullPolicy: 
           command:
             - /bin/bash
