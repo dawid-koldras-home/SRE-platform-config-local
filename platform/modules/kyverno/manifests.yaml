@@ -53295,6 +53295,7 @@ spec:
               privileged: false
               readOnlyRootFilesystem: true
               runAsNonRoot: true
+              runAsUser: 1000
               seccompProfile:
                 type: RuntimeDefault
           restartPolicy: OnFailure
@@ -53348,6 +53349,7 @@ spec:
               privileged: false
               readOnlyRootFilesystem: true
               runAsNonRoot: true
+              runAsUser: 1000
               seccompProfile:
                 type: RuntimeDefault
           restartPolicy: OnFailure
@@ -53811,7 +53813,7 @@ spec:
             readOnlyRootFilesystem: true
             runAsGroup: 65534
             runAsNonRoot: true
-            runAsUser: 65534
+            runAsUser: 1000
             seccompProfile:
               type: RuntimeDefault
 ---
@@ -53925,6 +53927,6 @@ spec:
             readOnlyRootFilesystem: true
             runAsGroup: 65534
             runAsNonRoot: true
-            runAsUser: 65534
+            runAsUser: 1000
             seccompProfile:
               type: RuntimeDefault
