@@ -41,6 +41,7 @@ data:
           ownershipEntityRefs:
           - user:default/guest
           - group:default/platform-team
+          - group:default/tenant-maxima
           userEntityRef: user:default/guest
     backend:
       actions:
@@ -112,6 +113,9 @@ data:
       name: SRE Platform
     permission:
       enabled: true
+    srePlatform:
+      authProvider: guest
+      tenant: maxima
     techdocs:
       builder: local
       generator:
@@ -133,12 +137,22 @@ data:
       children: []
     ---
     apiVersion: backstage.io/v1alpha1
+    kind: Group
+    metadata:
+      name: tenant-maxima
+      description: Local identity group for tenant maxima
+    spec:
+      type: tenant
+      children: []
+    ---
+    apiVersion: backstage.io/v1alpha1
     kind: User
     metadata:
       name: guest
     spec:
       memberOf:
         - platform-team
+        - tenant-maxima
     ---
     apiVersion: backstage.io/v1alpha1
     kind: System
@@ -154,7 +168,7 @@ data:
       name: sre-platform-control-plane
       description: Local SRE Platform control-plane services
       annotations:
-        argocd/app-selector: app.kubernetes.io/part-of=sre-platform
+        argocd/app-selector: sre.platform.io/tenant=maxima
         backstage.io/kubernetes-label-selector: app.kubernetes.io/part-of=sre-platform
         backstage.io/kubernetes-namespace: argocd
       tags:
@@ -256,7 +270,7 @@ spec:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/component: backstage
       annotations:
-        checksum/app-config: 91faedfc940fcedfcf22f8f173c0ad5aefe064782bfdf4078a9802aff72fa159
+        checksum/app-config: 9681d0f9eb9ed13c918ccbdb82ccf905ebd238525bab5f962f7de001df07dd76
     spec:
       serviceAccountName: backstage-read-only
       volumes:
@@ -269,7 +283,7 @@ spec:
       
       containers:
         - name: backstage-backend
-          image: localhost:5001/sre-platform/backstage:1.52.0-argocd.3
+          image: localhost:5001/sre-platform/backstage:1.52.0-argocd.4
           imagePullPolicy: "IfNotPresent"
           command:
             - node
