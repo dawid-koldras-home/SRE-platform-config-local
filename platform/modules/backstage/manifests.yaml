@@ -1,4 +1,129 @@
 ---
+# Source: backstage/templates/app-config-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backstage-app-config
+  namespace: "backstage"
+data:
+  app-config.yaml: |
+    app:
+      baseUrl: http://localhost:7007
+      extensions:
+      - page:catalog:
+          config:
+            path: /
+      packages: all
+      title: SRE Platform Developer Portal
+    auth:
+      environment: development
+      providers:
+        guest:
+          dangerouslyAllowOutsideDevelopment: true
+    backend:
+      actions:
+        pluginSources:
+        - auth
+        - catalog
+        - scaffolder
+      baseUrl: http://localhost:7007
+      cors:
+        credentials: true
+        methods:
+        - GET
+        - HEAD
+        - PATCH
+        - POST
+        - PUT
+        - DELETE
+        origin: http://localhost:7007
+      csp:
+        connect-src:
+        - '''self'''
+        - 'http:'
+        - 'https:'
+      database:
+        client: better-sqlite3
+        connection: ':memory:'
+      listen:
+        port: 7007
+    catalog:
+      import:
+        entityFilename: catalog-info.yaml
+        pullRequestBranchName: backstage-integration
+      locations:
+      - target: /app/local-catalog.yaml
+        type: file
+      rules:
+      - allow:
+        - Component
+        - System
+        - API
+        - Resource
+        - Location
+        - Template
+        - User
+        - Group
+    mcpActions:
+      description: Local developer portal for the SRE Platform
+      name: SRE Platform Backstage
+    organization:
+      name: SRE Platform
+    permission:
+      enabled: true
+    techdocs:
+      builder: local
+      generator:
+        runIn: local
+      publisher:
+        type: local
+---
+# Source: backstage/templates/extra-list.yaml
+apiVersion: v1
+data:
+  local-catalog.yaml: |
+    apiVersion: backstage.io/v1alpha1
+    kind: Group
+    metadata:
+      name: platform-team
+      description: Local SRE Platform operators
+    spec:
+      type: team
+      children: []
+    ---
+    apiVersion: backstage.io/v1alpha1
+    kind: User
+    metadata:
+      name: guest
+    spec:
+      memberOf:
+        - platform-team
+    ---
+    apiVersion: backstage.io/v1alpha1
+    kind: System
+    metadata:
+      name: sre-platform
+      description: Customer SRE platform installed by srectl
+    spec:
+      owner: platform-team
+    ---
+    apiVersion: backstage.io/v1alpha1
+    kind: Component
+    metadata:
+      name: sre-platform-control-plane
+      description: Local SRE Platform control-plane services
+      tags:
+        - sre
+        - gitops
+    spec:
+      type: service
+      lifecycle: experimental
+      owner: platform-team
+      system: sre-platform
+kind: ConfigMap
+metadata:
+  name: backstage-local-catalog
+---
 # Source: backstage/templates/service.yaml
 apiVersion: v1
 kind: Service
@@ -39,7 +164,7 @@ metadata:
     app.kubernetes.io/component: backstage
   annotations:
 spec:
-  replicas: 2
+  replicas: 1
   revisionHistoryLimit: 10
   selector:
     matchLabels:
@@ -55,10 +180,16 @@ spec:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/component: backstage
       annotations:
-        checksum/app-config: 44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a
+        checksum/app-config: 1600d0dd0ff3238e6391d3880115ffe1bb7e203730064f93cd16dbe107aec3d2
     spec:
       serviceAccountName: default
       volumes:
+        - configMap:
+            name: backstage-local-catalog
+          name: local-catalog
+        - name: backstage-app-config
+          configMap:
+            name: backstage-app-config
       
       containers:
         - name: backstage-backend
@@ -68,6 +199,8 @@ spec:
             - node
             - packages/backend
           args:
+            - "--config"
+            - "/app/app-config-from-configmap.yaml"
           resources:
             limits:
               cpu: 1000m
@@ -97,3 +230,11 @@ spec:
             - name: backend
               containerPort: 7007
               protocol: TCP
+          volumeMounts:
+            - name: backstage-app-config
+              mountPath: "/app/app-config-from-configmap.yaml"
+              subPath: app-config.yaml
+            - mountPath: /app/local-catalog.yaml
+              name: local-catalog
+              readOnly: true
+              subPath: local-catalog.yaml
