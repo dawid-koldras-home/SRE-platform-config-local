@@ -283,7 +283,7 @@ spec:
       
       containers:
         - name: backstage-backend
-          image: localhost:5001/sre-platform/backstage:1.52.0-argocd.8
+          image: localhost:5001/sre-platform/backstage:1.52.0-argocd.9
           imagePullPolicy: "IfNotPresent"
           command:
             - node
