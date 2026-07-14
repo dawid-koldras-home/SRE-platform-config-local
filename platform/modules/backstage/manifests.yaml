@@ -29,7 +29,7 @@ data:
       appLocatorMethods:
       - instances:
         - name: local
-          url: ""
+          url: http://localhost:8080
         type: config
       fullDeploymentHistory: false
       refreshInterval: 10000
@@ -270,7 +270,7 @@ spec:
         app.kubernetes.io/managed-by: Helm
         app.kubernetes.io/component: backstage
       annotations:
-        checksum/app-config: 6a52db281aee83fd017ee891b4038a6e5c1e62772709444ab73b3a52a09b75f2
+        checksum/app-config: 9681d0f9eb9ed13c918ccbdb82ccf905ebd238525bab5f962f7de001df07dd76
     spec:
       serviceAccountName: backstage-read-only
       volumes:
@@ -283,7 +283,7 @@ spec:
       
       containers:
         - name: backstage-backend
-          image: localhost:5001/sre-platform/backstage:1.52.0-argocd.9
+          image: localhost:5001/sre-platform/backstage:1.52.0-argocd.10
           imagePullPolicy: "IfNotPresent"
           command:
             - node
